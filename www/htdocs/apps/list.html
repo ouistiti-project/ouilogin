@@ -1,0 +1,259 @@
+<html>
+	<head>
+		<title>Ouistiti: Profile</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!--
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		-->
+		<link type="text/css" rel="stylesheet" href="/trust/css/bootstrap.min.css">
+		<script type="text/javascript" src="js/auth.js"></script>
+		<script type="text/javascript" src="js/profile.js"></script>
+		<script type="text/javascript" src="/trust/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/trust/js/bootstrap.min.js"></script>
+		<script type="text/javascript">
+function checkpassword (callback)
+{
+	callback();
+}
+
+var g_profile = undefined;
+function loaduser(user)
+{
+	$('#userstable').html("");
+	var profile;
+	if (g_profile == undefined)
+		profile = new Profile(user);
+	else
+		profile = g_profile;
+	var nusers = 0;
+	profile.onRemove = function(user, data)
+	{
+		loaduser();
+	};
+	profile.onChange = function(user, data)
+	{
+		if ($("#"+data.user).length)
+		{
+			$("#"+data.user).find(".username").html(data.user);
+			if (data.group != undefined && data.group.length)
+				$("#"+user).find(".usergroup").html(data.group);
+			if (data.status != undefined && data.status.length)
+				$("#"+user).find(".userstatus").html(data.status);
+			if (data.email != undefined && data.email.length)
+				$("#"+user).find(".useremail").html(data.email);
+			if (data.status == "removed")
+				$("#"+data.user).remove();
+		}
+		else
+		{
+			nusers+=1;
+			var elem = $("<tr id='"+data.user+"'>"+
+				"<th>"+nusers+"</th>"+
+				"<td class='close pull-left username'>"+data.user+"</td>"+
+				"<td class=''><button type='button' class='close pull-left usergroup' data-toggle='modal' data-target='#groupslist'>"+data.group+"</button></td>"+
+				"<td class=''><button type='button' class='close pull-left userstatus' data-toggle='modal' data-target='#statuslist'>"+data.status+"</button></td>"+
+				"<td class='useremail'>"+data.email+"</td>"+
+				"<td><button type='button' class='close removeuser'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></button></td>"+
+			"</tr>");
+			$('#userstable').append(elem);
+			$(".removeuser").on('click', function (event) {
+				var button = $(event.target);
+				g_profile.remove(button.parents("tr")[0].id);
+			});
+		}
+		$('#createuser').modal("hide");
+	};
+	profile.read();
+	return profile;
+}
+
+$(document).ready(function()
+{
+	$('#error').slideUp( 300 ).modal('hide');
+	$('#passwordbox').slideUp( 300 ).modal('hide');
+	var auth = new Auth("/token");
+	auth.onPermission = function (username, groupname) {
+		if (groupname != "root")
+			location.assign("/logout?noredirect");
+		g_profile = loaduser(username);
+	};
+	auth.check();
+	$('#buttonCreate').on("click", function() {
+		var data = {};
+		data.password = "*";
+		data.group = "users";
+		data.user = $('#inputName').val();
+		if (data.user == undefined)
+			return;
+		var email = $('#inputEmail').val();
+		if (email != undefined)
+			data.email = email;
+
+		g_profile.create($('#inputName').val(), data);		
+	});
+	$('#buttonLogout').on('click', function() {
+		location.assign("/logout?noredirect");
+	});
+	$('#groupslist').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget);
+		var user = button.parents("tr")[0].id;
+		$("#groupslist").data("user", user);
+	});
+	$('.groupname').on('click', function (event) {
+		var button = $(event.target);
+		var data = {};
+		data.user = $("#groupslist").data("user");
+		data.group = button.data("group");
+		g_profile.change($("#groupslist").data("user"), data);
+	});
+	$('#creategroup').on('click', function (event) {
+		var data = {};
+		data.user = $("#groupslist").data("user");
+		data.group = $("#inputGroup").val();
+		g_profile.change($("#groupslist").data("user"), data);
+		$("#groupslist").modal('hide');
+	});
+	$('#statuslist').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget);
+		var tr = button.parents("tr")[0];
+		var user = button.parents("tr")[0].id;
+		$("#statuslist").data("user", user);
+	});
+	$(".statusname").on('click', function (event) {
+		var button = $(event.target);
+		var data = {};
+		data.user = $("#statuslist").data("user");
+		data.status = button.data("status");
+		g_profile.change($("#statuslist").data("user"), data);
+	});
+});
+
+window.addEventListener('unload', function(event) {
+});
+		</script>
+	</head>
+	<body style="padding-top: 70px;">
+		<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a href="#" class="navbar-brand">Ouistiti</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li class="dropdown rootaccess">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Root <span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li><a href="./profile.html">Profile</a></li>
+								<li class="disabled"><a href="./list.html">Users</a></li>
+								<li><a href="./filter.html">Filters</a></li>
+							</ul>
+						</li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="#" class="" id='buttonLogout'><span class="glyphicon glyphicon-off" aria-hidden='true'></span></a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<div class="modal fade" id='error' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h3 class="alert alert-warning">Bad Password</h3>
+						<button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='modal fade' id="groupslist" tabindex='-1' role='dialog' aria-labelledby='Info'>
+			<div class='modal-dialog modal-sm' role='document'>
+				<div class='modal-content'>
+					<div class='modal-body'>
+						<div class='list-group'>
+							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="root" aria-label="root">root</a>
+							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="users" aria-label="users">users</a>
+							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="anonymous" aria-label="anonymous">anonymous</a>
+							<div class="list-group-item" style="padding:0;">
+								<div class="input-group">
+									<input type="text" class="form-control" id="inputGroup" placeholder="new">
+									<span class="input-group-btn">
+										<button id="creategroup" type="button" class="btn btn-default" style="padding:9px 12px;"><span class="glyphicon glyphicon-plus"></span></button>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='modal fade' id="statuslist" tabindex='-1' role='dialog' aria-labelledby='Info'>
+			<div class='modal-dialog modal-sm' role='document'>
+				<div class='modal-content'>
+					<div class='modal-body'>
+						<div class='list-group'>
+							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="approbing" aria-label="approbing">approbing</a>
+							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="activated" aria-label="activated">activated</a>
+							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="reapprobing" aria-label="reapprobing">reapprobing</a>
+							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="repudiated" aria-label="repudiated">repudiated</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id='createuser' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role='document'>
+				<div class="modal-content">
+					<div class="modal-body">
+						<div class="container-fluid">
+							<div class="row" style="margin-bottom:2px;">
+								<label for="inputName" class="col-xs-2">Name</label>
+								<input type="text" class="col-xs-9" id="inputName" placeholder="Name">
+							</div>
+							<div class="row" style="margin-bottom:2px;">
+								<label for="inputEmail" class="col-xs-2">Email address</label>
+								<input type="text" class="col-xs-9" id="inputEmail" placeholder="Email">
+							</div>
+							<div class="row" style="margin-bottom:2px;">
+								<button id="buttonCreate" type="button" class="btn pull-right">Create</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='container-fluid'>
+			<div class='row'>
+				<div class='col-sm-10 col-sm-offset-1'>
+					<div class='panel panel-default'>
+						<div class='panel-heading'>
+							<div class='row'>
+								<h3 class='col-xs-12'>Users
+								<button type="button" class="close" style="padding:5px;" data-toggle="modal" data-target='#createuser'><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+								</h3>
+							</div>
+						</div>
+						<div class='panel-body'>
+							<table class='table taable-hover table-condensed table-striped'>
+								<thead>
+									<tr>
+										<th>#</th>
+										<th>Name</th>
+										<th>Group</th>
+										<th>Status</th>
+										<th>Email</th>
+									</tr>
+								</thead>
+								<tbody id="userstable">
+									
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+ 	</body>
+</html>

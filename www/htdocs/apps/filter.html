@@ -1,0 +1,194 @@
+<html>
+	<head>
+		<title>Ouistiti: Profile</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!--
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		-->
+		<link type="text/css" rel="stylesheet" href="/trust/css/bootstrap.min.css">
+		<script type="text/javascript" src="js/auth.js"></script>
+		<script type="text/javascript" src="js/filter.js"></script>
+		<script type="text/javascript" src="/trust/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/trust/js/bootstrap.min.js"></script>
+		<script type="text/javascript">
+function decodequery(qs) {
+	const myMap = new Map();
+	if (qs.length > 0)
+	{
+		const elements = qs.replace(/^\?/, '').split('&');
+		elements.map(function(str){const element = str.split('=');
+			myMap.set(element[0],decodeURIComponent(element[1].replace(/\+/g, ' ')))});
+	}
+	return myMap;
+}
+
+var g_filter;
+$(document).ready(function()
+{
+	var auth = new Auth("/token");
+	auth.onPermission = function (username, groupname) {
+		if (groupname != "root")
+			location.assign("/logout?noredirect");
+	};
+	auth.check();
+
+	g_filter = new Filter();
+	var nfilters = 0;
+	g_filter.onChange = function(data)
+	{
+		nfilters+=1;
+		var elem = $("<tr id='"+data.id+"'>"+
+			"<th>"+nfilters+"</th>"+
+			"<td class=''>"+data.role+"</td>"+
+			"<td class=''>"+data.method+"</td>"+
+			"<td class=''>"+data.pathexp+"</td>"+
+			"<td><button type='button' class='close removefilter' data-id="+data.id+"><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></button></td>"+
+		"</tr>");
+		$('#filterstable').append(elem);
+		$('.removefilter').on("click", function(event) {
+			var button = $(event.currentTarget);
+			g_filter.remove(button.data("id"));
+		});
+	};
+	g_filter.read();
+	$('#buttonLogout').on('click', function() {
+		location.assign("/logout?noredirect");
+	});
+	$('.methodfield').on('click', function (event) {
+		var button = $(event.target);
+		$('#dMethod').text(button.data("method"));
+		$('#inputMethod').val(button.data("method"));
+	})
+	$('.rolefield').on('click', function (event) {
+		var button = $(event.target);
+		$('#dRole').text(button.data("role"));
+		$('#inputRole').val(button.data("role"));
+	})
+	$('#buttonCreate').on("click", function() {
+		var data = {};
+		data.method = $('#inputMethod').val();
+		data.role = $('#inputRole').val();
+		data.pathexp = $('#inputPathExp').val();
+
+		g_filter.create(data);
+		$('#createfilter').modal('hide');
+	});
+});
+
+window.addEventListener('unload', function(event) {
+});
+		</script>
+	</head>
+	<body style="padding-top: 70px;">
+		<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a href="#" class="navbar-brand">Ouistiti</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li class="dropdown rootaccess">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Root <span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li><a href="./profile.html">Profile</a></li>
+								<li><a href="./list.html">Users</a></li>
+								<li class="disabled"><a href="./filter.html">Filters</a></li>
+							</ul>
+						</li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="#" class="" id='buttonLogout'><span class="glyphicon glyphicon-off" aria-hidden='true'></span></a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<div class="modal fade" id='error' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h3 class="alert alert-warning">Bad Password</h3>
+						<button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id='createfilter' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<div class="container-fluid">
+							<ul class="nav nav-pills">
+								<li class="dropdown" role="presentation">
+									<a id='dRole' class="btn btn-default dropdown-toggle" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+										Role
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu" aria-labelledby='dRole' id='inputRole'>
+										<li><a href="#" class="rolefield" data-role='root' aria-label="root">root</a></li>
+										<li><a href="#" class="rolefield" data-role='anonymous' aria-label="anonymous">anonymous</a></li>
+										<li><a href="#" class="rolefield" data-role='users' aria-label="users">users</a></li>
+										<li><a href="#" class="rolefield" data-role='client' aria-label="client">client</a></li>
+									</ul>
+								</li>
+								<li class="dropdown" role="presentation">
+									<a class="btn btn-default dropdown-toggle" type="button" id='dMethod' data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+										Method
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu" aria-labelledby='dMethod'>
+										<li><a href="#" class="methodfield" data-method='GET' aria-label="root">GET</a></li>
+										<li><a href="#" class="methodfield" data-method='POST' aria-label="POST">POST</a></li>
+										<li><a href="#" class="methodfield" data-method='HEAD' aria-label="HEAD">HEAD</a></li>
+										<li><a href="#" class="methodfield" data-method='PUT' aria-label="PUT">PUT</a></li>
+										<li><a href="#" class="methodfield" data-method='DELETE' aria-label="DELETE">DELETE</a></li>
+										<li><a href="#" class="methodfield" data-method='OPTIONS' aria-label="OPTIONS">OPTIONS</a></li>
+									</ul>
+								</li>
+								<li>
+									<div class="input-group">
+										<input type="hidden" class="" id='inputRole' placeholder="Role" value=""></input>
+										<input type="hidden" class="" id='inputMethod' placeholder="Method" value=""></input>
+										<input type="text" class="form-control" style="height:42px;" id='inputPathExp' placeholder="Regular Expression">
+									</div>
+								<li class="pull-right"><a id='buttonCreate' class="btn btn-default">Create</a></li>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<div class="row">
+								<h3 class="col-xs-12">Filters
+								<button type="button" class="close" style="padding:5px;" data-toggle="modal" data-target='#createfilter'><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+								</h3>
+							</div>
+						</div>
+						<div class="panel-body">
+							<table class="table taable-hover table-condensed table-striped">
+								<thead>
+									<tr>
+										<th>#</th>
+										<th>Role</th>
+										<th>Method</th>
+										<th>Path Expression</th>
+									</tr>
+								</thead>
+								<tbody id='filterstable'>
+									
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+ 	</body>
+</html>
