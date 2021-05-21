@@ -1,0 +1,205 @@
+<html>
+	<head>
+		<title>Ouistiti: Profile</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!--
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		-->
+		<link type="text/css" rel="stylesheet" href="/trust/css/bootstrap.min.css">
+		<script type="text/javascript" src="js/profile.js"></script>
+		<script type="text/javascript" src="js/auth.js"></script>
+		<script type="text/javascript" src="/trust/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/trust/js/bootstrap.min.js"></script>
+		<script type="text/javascript">
+function checkpassword (callback)
+{
+	callback();
+}
+
+function decodequery(qs) {
+	const myMap = new Map();
+	if (qs.length > 0)
+	{
+		const elements = qs.replace(/^\?/, '').split('&');
+		elements.map(function(str){const element = str.split('=');
+			myMap.set(element[0],decodeURIComponent(element[1].replace(/\+/g, ' ')))});
+	}
+	return myMap;
+}
+
+var g_profile;
+var g_auth;
+
+$(document).ready(function()
+{
+	$('#error').slideUp( 300 ).modal('hide');
+	$('#passwordbox').slideUp( 300 ).modal('hide');
+	g_auth = new Auth("/token");
+	g_auth.onPermission = function (user, group) {
+		g_profile = new Profile("");
+		g_profile.onChange = function (data) {
+			$('#successBox').modal('show');
+		};
+	};
+	g_auth.check();
+	$('#buttonChange').on("click", function() {
+		var data = {};
+		var user = $('#username').val();
+		if (user === "")
+		{
+			$('#errorMessage').html("user name is empty");
+			$('#error').modal("show");
+			setTimeout( function(){
+				$('#error').modal("hide");
+			}, 2000);
+			return;
+		}
+		data.user = user;
+		var group = $('#group').val();
+		if (group != undefined)
+			data.group = group;
+		var email = $('#email').val();
+		if (email != undefined)
+			data.email = email;
+
+		if ($('#password').val() != $('#passwordRepeat').val())
+		{
+			$('#errorMessage').html("password not corresponding");
+			$('#error').modal("show");
+			setTimeout( function(){
+				$('#error').modal("hide");
+			}, 2000);
+			return;
+		}
+		var password = $('#password').val();
+		if (password != undefined)
+			data.passwd = password;
+
+		g_profile.create($('#username').val(), data);
+		g_profile.onError = function (error) {
+			$('#errorMessage').html(error);
+			$('#error').modal("show");
+			setTimeout( function(){
+				$('#error').modal("hide");
+			}, 2000);
+		};
+	});
+	$('#passwordgenerator').on("click", function (event) {
+		var password = g_profile.generate(128);
+		$('#password').val(password).prop("type", "text");
+		$('#passwordRepeat').val(password);
+	});
+	$('#buttonLogout').on("click", function() {
+		g_auth.logout();
+		location.assign("/logout?noredirect");
+	});
+});
+
+window.addEventListener('unload', function(event) {
+});
+		</script>
+	</head>
+	<body style="padding-top: 70px;">
+		<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a href="#" class="navbar-brand">Ouistiti</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li class="dropdown hidden rootaccess">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Root <span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li class="disabled"><a href="./profile.html">Profile</a></li>
+								<li><a href="./list.html">Users</a></li>
+								<li><a href="./filter.html">Filters</a></li>
+							</ul>
+						</li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="#" class="" id='buttonLogout'><span class="glyphicon glyphicon-off" aria-hidden='true'></span></a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<div class="modal fade" id='successbox' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h3 class="alert alert-success" id='successMessage'>new user created</h3>
+						<p> please contact the administrator to approve your account</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id='error' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h3 class="alert alert-warning" id='errorMessage'>Bad Password</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<div class="row">
+								<h3 class="col-xs-12">Profile</h3>
+							</div>
+						</div>
+						<div class="panel-body">
+							<form class="form-horizontal col-xs-10 col-xs-offset-1">
+								<div class="form-group">
+									<div class="row">
+										<label for="username">Name</label>
+										<div class="input-group col-xs-6">
+											<input type="text" class="form-control" id='username' placeholder="Name">
+											<input type="hidden" class="form-control" id='group' value="users" placeholder="Name">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<label for="password">Password</label>
+										<div class="input-group col-sm-12">
+											<input type="password" class="form-control" id='password' placeholder="Password">
+											<span class="input-group-btn">
+												<button id='passwordgenerator' type="button" class="btn btn-default">Generate</button>
+											</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<div class="input-group col-sm-12">
+											<input type="password" class="form-control" id='passwordRepeat' placeholder="Password">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<label for="inputEmail1">Email address</label>
+										<div class="input-group col-xs-12">
+											<input type="email" class="form-control" id='inputEmail1' placeholder="Email">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<button id="buttonChange" type="button" class="btn btn-primary">Save</button>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+ 	</body>
+</html>
