@@ -36,33 +36,37 @@ function loaduser(user)
 	};
 	profile.onChange = function(user, data)
 	{
-		if ($("#"+data.user).length)
+		if ($('#'+data.user).length)
 		{
-			$("#"+data.user).find(".username").html(data.user);
+			$('#'+data.user).find('.username').html(data.user);
 			if (data.group != undefined && data.group.length)
-				$("#"+user).find(".usergroup").html(data.group);
+				$('#'+user).find('.usergroup').html(data.group);
 			if (data.status != undefined && data.status.length)
-				$("#"+user).find(".userstatus").html(data.status);
+				$('#'+user).find('.userstatus').html(data.status);
 			if (data.email != undefined && data.email.length)
-				$("#"+user).find(".useremail").html(data.email);
+				$('#'+user).find('.useremail').html(data.email);
 			if (data.status == "removed")
-				$("#"+data.user).remove();
+				$('#'+data.user).remove();
 		}
 		else
 		{
 			nusers+=1;
 			var elem = $("<tr id='"+data.user+"'>"+
 				"<th>"+nusers+"</th>"+
-				"<td class='close pull-left username'>"+data.user+"</td>"+
+				"<td class=''><button type='button' class='close pull-left username' data-user='"+data.user+"'>"+data.user+"</button></td>"+
 				"<td class=''><button type='button' class='close pull-left usergroup' data-toggle='modal' data-target='#groupslist'>"+data.group+"</button></td>"+
 				"<td class=''><button type='button' class='close pull-left userstatus' data-toggle='modal' data-target='#statuslist'>"+data.status+"</button></td>"+
 				"<td class='useremail'>"+data.email+"</td>"+
 				"<td><button type='button' class='close removeuser'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></button></td>"+
 			"</tr>");
 			$('#userstable').append(elem);
-			$(".removeuser").on('click', function (event) {
+			$('.removeuser').on("click", function (event) {
 				var button = $(event.target);
 				g_profile.remove(button.parents("tr")[0].id);
+			});
+			$('.username').on("click", function (event) {
+				var button = $(event.target);
+				location.href = "/apps/profile.html?username="+button.data("user");
 			});
 		}
 		$('#createuser').modal("hide");
@@ -96,43 +100,71 @@ $(document).ready(function()
 		if (email != undefined)
 			data.email = email;
 
-		g_profile.create($('#inputName').val(), data);		
+		g_profile.create($('#inputName').val(), data);
 	});
-	$('#buttonLogout').on('click', function() {
+	$('#buttonLogout').on("click", function() {
 		g_auth.logout();
 		location.assign("/logout?noredirect");
 	});
-	$('#groupslist').on('show.bs.modal', function (event) {
+	$('#groupslist').on("show.bs.modal", function (event) {
 		var button = $(event.relatedTarget);
 		var user = button.parents("tr")[0].id;
-		$("#groupslist").data("user", user);
+		$('#groupslist').data("user", user);
 	});
-	$('.groupname').on('click', function (event) {
+	$('.groupname').on("click", function (event) {
 		var button = $(event.target);
 		var data = {};
-		data.user = $("#groupslist").data("user");
+		data.user = $('#groupslist').data("user");
 		data.group = button.data("group");
-		g_profile.change($("#groupslist").data("user"), data);
+		g_profile.change($('#groupslist').data("user"), data);
 	});
-	$('#creategroup').on('click', function (event) {
+	$('#creategroup').on("click", function (event) {
 		var data = {};
-		data.user = $("#groupslist").data("user");
-		data.group = $("#inputGroup").val();
+		data.user = $('#groupslist').data("user");
+		data.group = $('#inputGroup').val();
 		g_profile.change($("#groupslist").data("user"), data);
-		$("#groupslist").modal('hide');
+		$('#groupslist').modal('hide');
 	});
-	$('#statuslist').on('show.bs.modal', function (event) {
+	$('#statuslist').on("show.bs.modal", function (event) {
 		var button = $(event.relatedTarget);
 		var tr = button.parents("tr")[0];
 		var user = button.parents("tr")[0].id;
-		$("#statuslist").data("user", user);
+		$('#statuslist').data("user", user);
 	});
-	$(".statusname").on('click', function (event) {
+	$('.statusname').on("click", function (event) {
 		var button = $(event.target);
 		var data = {};
-		data.user = $("#statuslist").data("user");
+		data.user = $('#statuslist').data("user");
 		data.status = button.data("status");
-		g_profile.change($("#statuslist").data("user"), data);
+		status = $('#'+data.user).find('.userstatus').html();
+		if (data.status === "activated" && data.status !== status)
+		{
+			$('#passwordbox').data("user", data.user)
+				.data("status", data.status)
+				.modal("show");
+		}
+		else
+			g_profile.change(data.user, data);
+	});
+	$('#passwordgenerator').on("click", function (event) {
+		var password = g_profile.generate(128);
+		$('#password').val(password).prop("type", "text");
+		$('#passwordRepeat').val(password);
+	});
+	$('#buttonChangePassword').on("click", function (event) {
+		var data = {};
+		data.user = $('#passwordbox').data("user");
+		data.status = $('#passwordbox').data("status");
+		data.passwd = $('#password').val();
+		if (data.passwd === $('#passwordRepeat').val())
+		{
+			if (data.passwd === "")
+			{
+				alert("password unchanged");
+			}
+			g_profile.change(data.user, data);
+			$('#passwordbox').modal("hide");
+		}
 	});
 });
 
@@ -168,19 +200,19 @@ window.addEventListener('unload', function(event) {
 				<div class="modal-content">
 					<div class="modal-body">
 						<h3 class="alert alert-warning">Bad Password</h3>
-						<button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+						<button type="button" class='close' data-dismiss="modal" aria-label='Close'><span aria-hidden='true'>&times;</span></button>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class='modal fade' id="groupslist" tabindex='-1' role='dialog' aria-labelledby='Info'>
-			<div class='modal-dialog modal-sm' role='document'>
-				<div class='modal-content'>
-					<div class='modal-body'>
-						<div class='list-group'>
-							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="root" aria-label="root">root</a>
-							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="users" aria-label="users">users</a>
-							<a href='#' class='list-group-item groupname' data-dismiss='modal' data-group="anonymous" aria-label="anonymous">anonymous</a>
+		<div class="modal fade" id='groupslist' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog modal-sm" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<div class="list-group">
+							<a href='#' class="list-group-item groupname" data-dismiss='modal' data-group="root" aria-label="root">root</a>
+							<a href='#' class="list-group-item groupname" data-dismiss='modal' data-group="users" aria-label="users">users</a>
+							<a href='#' class="list-group-item groupname" data-dismiss='modal' data-group="anonymous" aria-label="anonymous">anonymous</a>
 							<div class="list-group-item" style="padding:0;">
 								<div class="input-group">
 									<input type="text" class="form-control" id="inputGroup" placeholder="new">
@@ -194,15 +226,15 @@ window.addEventListener('unload', function(event) {
 				</div>
 			</div>
 		</div>
-		<div class='modal fade' id="statuslist" tabindex='-1' role='dialog' aria-labelledby='Info'>
-			<div class='modal-dialog modal-sm' role='document'>
-				<div class='modal-content'>
-					<div class='modal-body'>
-						<div class='list-group'>
-							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="approbing" aria-label="approbing">approbing</a>
-							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="activated" aria-label="activated">activated</a>
-							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="reapprobing" aria-label="reapprobing">reapprobing</a>
-							<a href='#' class='list-group-item statusname' data-dismiss='modal' data-status="repudiated" aria-label="repudiated">repudiated</a>
+		<div class="modal fade" id='statuslist' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog modal-sm" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<div class="list-group">
+							<a href='#' class="list-group-item statusname" data-dismiss='modal' data-status="approving" aria-label="approving">approving</a>
+							<a href='#' class="list-group-item statusname" data-dismiss='modal' data-status="activated" aria-label="activated">activated</a>
+							<a href='#' class="list-group-item statusname" data-dismiss='modal' data-status="reapproving" aria-label="reapproving">reapproving</a>
+							<a href='#' class="list-group-item statusname" data-dismiss='modal' data-status="repudiated" aria-label="repudiated">repudiated</a>
 						</div>
 					</div>
 				</div>
@@ -223,6 +255,38 @@ window.addEventListener('unload', function(event) {
 							</div>
 							<div class="row" style="margin-bottom:2px;">
 								<button id="buttonCreate" type="button" class="btn pull-right">Create</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id='passwordbox' tabindex="-1" role="dialog" aria-labelledby="Info">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h3>Password</h3>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="form-group col-sm-10 col-sm-offset-1">
+								<input type="password" class="form-control" id='password' placeholder="Password">
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-10 col-sm-offset-1">
+								<input type="password" class="form-control" id='passwordRepeat' placeholder="Password">
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-xs-3 col-sm-offset-1">
+								<button id='buttonChangePassword' type="button" class="btn btn-default">Save</button>
+							</div>
+							<div class="form-group col-xs-3 col-sm-offset-1">
+								<button id='passwordgenerator' type="button" class="btn btn-default">Generate</button>
+							</div>
+							<div class="form-group col-xs-3 pull-right">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 							</div>
 						</div>
 					</div>
@@ -252,7 +316,7 @@ window.addEventListener('unload', function(event) {
 									</tr>
 								</thead>
 								<tbody id="userstable">
-									
+
 								</tbody>
 							</table>
 						</div>
