@@ -14,6 +14,30 @@ class Profile
 		this.url = "/auth/mngt";
 		this.user = user;
 	}
+	generate(entropy)
+	{
+		var randomInt = function(len) {
+			var x;
+			if ('crypto' in window)
+			{
+				var y = new Uint32Array(1);
+				window.crypto.getRandomValues(y);
+				x = y[0] % len;
+			}
+			else
+				x = Math.floor(Math.random() * len);
+			return x;
+		};
+		var charset = "abcdefghijklmnopqrstuvwxyz";
+		charset += "ABCDEFGHIJKLMNTOPQRSTUVWXYZ";
+		charset += "0123456789";
+		charset += "!#$@&€{}()";
+		var passlength = Math.ceil(entropy * Math.log(2) / Math.log(charset.length));
+		var password = "";
+		for (var i = 0; i < passlength; i++)
+			password += charset[randomInt(charset.length)];
+		return password;
+	}
 	readfnc(request)
 	{
 		var user = request.getResponseHeader("X-Remote-User");
