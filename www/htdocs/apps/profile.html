@@ -31,6 +31,7 @@ function decodequery(qs) {
 }
 
 var g_profile;
+var g_auth;
 function loaduser(user)
 {
 	var profile = new Profile(user);
@@ -82,11 +83,11 @@ $(document).ready(function()
 	}
 	else
 	{
-		var auth = new Auth("/token");
-		auth.onPermission = function (user, group) {
+		g_auth = new Auth("/token");
+		g_auth.onPermission = function (user, group) {
 			g_profile = loaduser(user);
 		};
-		auth.check();
+		g_auth.check();
 	}
 	$("#buttonChange").on("click", function() {
 		var data = {};
@@ -128,6 +129,7 @@ $(document).ready(function()
 		g_profile.remove($("#inputName").val());
 	});
 	$("#buttonLogout").on("click", function() {
+		g_auth.logout();
 		location.assign("/logout?noredirect");
 	});
 });
