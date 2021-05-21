@@ -60,6 +60,7 @@ class Profile
 			type: "GET",
 			url: url,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -96,6 +97,7 @@ class Profile
 			url: this.url+"/"+data.user,
 			data: data,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -129,6 +131,7 @@ class Profile
 			url: this.url,
 			data: data,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -164,6 +167,7 @@ class Profile
 			url: this.url+"/"+user,
 			data: data,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
