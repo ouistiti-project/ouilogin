@@ -16,9 +16,19 @@ class Auth
 		else
 			this.url = url;
 	}
+	logout()
+	{
+		if (this.token != undefined && this.token.length > 0)
+		{
+			document.cookie = "X-Auth-Token=";
+			document.cookie = "Authorization=";
+		}
+	}
 	check()
 	{
-		var headers = {};
+		var headers = {
+			"X-Requested-With": "XMLHttpRequest",
+		};
 		if (this.token != undefined && this.token.length > 0)
 				headers["X-Auth-Token"] = this.token;
 		this.request = $.ajax({

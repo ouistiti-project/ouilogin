@@ -64,10 +64,16 @@ $(document).ready(function()
 		$('.removefilter').on("click", function(event) {
 			var button = $(event.currentTarget);
 			g_filter.remove(button.data("id"));
+			//$("#"+button.data("id")).remove();
 		});
+	};
+	g_filter.onError = function()
+	{
+		g_auth.check();
 	};
 	g_filter.read();
 	$('#buttonLogout').on('click', function() {
+		g_auth.logout();
 		location.assign("/logout?noredirect");
 	});
 	$('.methodfield').on('click', function (event) {

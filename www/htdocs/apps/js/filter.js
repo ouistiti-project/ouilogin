@@ -40,6 +40,7 @@ class Filter
 			type: "GET",
 			url: url,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -67,6 +68,7 @@ class Filter
 			url: this.url,
 			data: data,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -74,11 +76,11 @@ class Filter
 				withCredentials: true
 			},
 			success: function(data, status, request) {
-				this.readfilter(data);
 				this.request = undefined;
 				var token = request.getResponseHeader("X-Auth-Token");
 				if (token != this.token)
 					this.token = token;
+				this.read();
 			}.bind(this),
 			error: function(request, textStatus, errorThrown) {
 				if (this.onError != undefined)
@@ -96,6 +98,7 @@ class Filter
 			url: this.url+"/"+id,
 			data: data,
 			headers : {
+				"X-Requested-With": "XMLHttpRequest",
 				"X-Auth-Token": this.token,
 				"Accept":"text/json"
 			},
@@ -103,7 +106,11 @@ class Filter
 				withCredentials: true
 			},
 			success: function(data, status, request) {
-				this.readfilter(data);
+				data = {
+					id:id,
+				};
+				if (this.onChange != undefined)
+					this.onChange(data);
 				this.request = undefined;
 				var token = request.getResponseHeader("X-Auth-Token");
 				if (token != this.token)
