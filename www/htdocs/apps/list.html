@@ -20,6 +20,7 @@ function checkpassword (callback)
 }
 
 var g_profile = undefined;
+var g_auth = undefined;
 function loaduser(user)
 {
 	$('#userstable').html("");
@@ -74,13 +75,16 @@ $(document).ready(function()
 {
 	$('#error').slideUp( 300 ).modal('hide');
 	$('#passwordbox').slideUp( 300 ).modal('hide');
-	var auth = new Auth("/token");
-	auth.onPermission = function (username, groupname) {
+	g_auth = new Auth("/token");
+	g_auth.onPermission = function (username, groupname) {
 		if (groupname != "root")
+		{
+			g_auth.logout();
 			location.assign("/logout?noredirect");
+		}
 		g_profile = loaduser(username);
 	};
-	auth.check();
+	g_auth.check();
 	$('#buttonCreate').on("click", function() {
 		var data = {};
 		data.password = "*";
@@ -95,6 +99,7 @@ $(document).ready(function()
 		g_profile.create($('#inputName').val(), data);		
 	});
 	$('#buttonLogout').on('click', function() {
+		g_auth.logout();
 		location.assign("/logout?noredirect");
 	});
 	$('#groupslist').on('show.bs.modal', function (event) {
