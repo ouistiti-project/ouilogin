@@ -26,21 +26,34 @@ function decodequery(qs) {
 }
 
 var g_filter;
+var g_auth;
 $(document).ready(function()
 {
-	var auth = new Auth("/token");
-	auth.onPermission = function (username, groupname) {
-		if (groupname != "root")
+	g_auth = new Auth("/token");
+	g_auth.onPermission = function (username, groupname) {
+		if (groupname != "root") {
+			g_auth.logout();
 			location.assign("/logout?noredirect");
+		}
 	};
-	auth.check();
+	g_auth.check();
 
 	g_filter = new Filter();
 	var nfilters = 0;
 	g_filter.onChange = function(data)
 	{
+		var elem = $("#"+data.id);
+		if (elem.html() != undefined)
+		{
+			if (data.role == undefined)
+			{
+				elem.remove();
+				nfilters-=1;
+			}
+			return;
+		}
 		nfilters+=1;
-		var elem = $("<tr id='"+data.id+"'>"+
+		elem = $("<tr id='"+data.id+"'>"+
 			"<th>"+nfilters+"</th>"+
 			"<td class=''>"+data.role+"</td>"+
 			"<td class=''>"+data.method+"</td>"+
