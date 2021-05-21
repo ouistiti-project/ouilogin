@@ -48,15 +48,15 @@ function loaduser(user)
 	{
 		$('#passwordbox').modal('hide');
 		if (data.user != undefined)
-			$("#inputName").val(data.user).attr("readonly", true);
-			
+			$('#username').val(data.user).attr("readonly", true);
+
 		if (data.group != undefined)
-			$("#inputGroup").val(data.group);
+			$('#usergroup').val(data.group);
 		if (data.email != undefined)
-			$("#inputEmail").val(data.email);
+			$('#useremail').val(data.email);
 		if (data.status != undefined)
 		{
-			$("#inputStatus").val(data.status);
+			$('#userstatus').val(data.status);
 			if (data.status == "reapproving")
 				$('#passwordbox').modal('show');
 		}
@@ -78,7 +78,7 @@ $(document).ready(function()
 	var user = decodequery(location.search).get("username");
 	if (user != undefined)
 	{
-		$("#inputName").val(user).attr("readonly", true);
+		$('#username').val(user).attr("readonly", true);
 		g_profile = loaduser(user);
 	}
 	else
@@ -89,46 +89,51 @@ $(document).ready(function()
 		};
 		g_auth.check();
 	}
-	$("#buttonChange").on("click", function() {
+	$('#buttonChange').on("click", function() {
 		var data = {};
-		var user = $("#inputName").val();
+		var user = $('#username').val();
 		if (user != undefined)
 			data.user = user;
-		var group = $("#inputGroup").val();
+		var group = $('#usergroup').val();
 		if (group != undefined)
 			data.group = group;
-		var email = $("#inputEmail").val();
+		var email = $('#useremail').val();
 		if (email != undefined)
 			data.email = email;
-		var status = $("#inputStatus").val();
+		var status = $('#userstatus').val();
 		if (status != undefined)
 			data.status = status;
 
-		if ($("#inputName").val(user).attr("readonly"))
-			g_profile.change($("#inputName").val(), data);
+		if ($('#username').val(user).attr("readonly"))
+			g_profile.change($('#username').val(), data);
 		else
-			g_profile.create($("#inputName").val(), data);
+			g_profile.create($('#username').val(), data);
 	});
-	$("#buttonChangePassword").on("click", function() {
+	$('#passwordgenerator').on("click", function (event) {
+		var password = g_profile.generate(128);
+		$('#password').val(password).prop("type", "text");
+		$('#passwordRepeat').val(password);
+	});
+	$('#buttonChangePassword').on("click", function() {
 		checkpassword(function() {
-			if ($("#inputPassword").val() != $("#inputPassword2").val())
+			if ($('#password').val() != $('#passwordRepeat').val())
 			{
-				$('#error').modal('show').delay( 2000 ).modal('hide');
+				$('#error').modal("show").delay( 2000 ).modal("hide");
 				return;
 			}
 			var data = {};
-			var password = $("#inputPassword").val();
+			var password = $('#password').val();
 			if (password != undefined)
 				data.passwd = password;
 
-			g_profile.change($("#inputName").val(), data);
+			g_profile.change($('#username').val(), data);
 		});
-		$('#passwordbox').modal('hide');
+		$('#passwordbox').modal("hide");
 	});
-	$("#buttonDelete").on("click", function() {
-		g_profile.remove($("#inputName").val());
+	$('#buttonDelete').on("click", function() {
+		g_profile.remove($('#username').val());
 	});
-	$("#buttonLogout").on("click", function() {
+	$('#buttonLogout').on("click", function() {
 		g_auth.logout();
 		location.assign("/logout?noredirect");
 	});
@@ -179,17 +184,20 @@ window.addEventListener('unload', function(event) {
 					<div class="modal-body">
 						<div class="row">
 							<div class="form-group col-sm-10 col-sm-offset-1">
-								<input type="password" class="form-control" id='inputPassword' placeholder="Password">
+								<input type="password" class="form-control" id='password' placeholder="Password">
 							</div>
 						</div>
 						<div class="row">
 							<div class="form-group col-sm-10 col-sm-offset-1">
-								<input type="password" class="form-control" id='inputPassword2' placeholder="Password">
+								<input type="password" class="form-control" id='passwordRepeat' placeholder="Password">
 							</div>
 						</div>
 						<div class="row">
 							<div class="form-group col-xs-3 col-sm-offset-1">
-								<button id="buttonChangePassword" type="button" class="btn btn-default">Save</button>
+								<button id='buttonChangePassword' type="button" class="btn btn-default">Save</button>
+							</div>
+							<div class="form-group col-xs-3 col-sm-offset-1">
+								<button id='passwordgenerator' type="button" class="btn btn-default">Generate</button>
 							</div>
 							<div class="form-group col-xs-3 pull-right">
 								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -210,44 +218,53 @@ window.addEventListener('unload', function(event) {
 						</div>
 						<div class="panel-body">
 							<form class="form-horizontal col-xs-10 col-xs-offset-1">
-								<label for="inputName">Name</label>
-								<div class="row">
-									<div class="form-group col-xs-6">
-										<input type="text" class="form-control" id='inputName' placeholder="Name">
+								<div class="form-group">
+									<div class="row">
+										<div class="input-group col-xs-6">
+											<label for="username">Name</label>
+											<input type="text" class="form-control" id='username' placeholder="Name">
+										</div>
 									</div>
 								</div>
-								<label for="inputGroup">Group</label>
-								<div class="row">
-									<div class="form-group col-xs-6">
-										<select class="form-control rootaccess" id='inputGroup' placeholder="Group" disabled>
-											<option value="root">root</option>
-											<option value="users">users</option>
-											<option value="anonymous">anonymous</option>
-										</select>
+								<div class="form-group">
+									<div class="row">
+										<div class="input-group col-xs-6">
+											<label for="usergroup">Group</label>
+											<select class="form-control rootaccess" id='usergroup' placeholder="Group" disabled>
+												<option value="root">root</option>
+												<option value="users">users</option>
+												<option value="anonymous">anonymous</option>
+											</select>
+										</div>
 									</div>
 								</div>
-								<label for="inputGroup">Status</label>
-								<div class="row">
-									<div class="form-group col-xs-6">
-										<select class="form-control rootaccess" id='inputStatus' placeholder="Status" disabled>
-											<option value="approbing">approbing</option>
-											<option value="activated">activated</option>
-											<option value="repudiated">repudiated</option>
-											<option value="reapprobing">reapprobing</option>
-										</select>
+								<div class="form-group">
+									<div class="row">
+										<div class="input-group col-xs-6">
+											<label for="userstatus">Status</label>
+											<select class="form-control rootaccess" id='userstatus' placeholder="Status" disabled>
+												<option value="approving">approving</option>
+												<option value="activated">activated</option>
+												<option value="repudiated">repudiated</option>
+												<option value="reapproving">reapproving</option>
+											</select>
+										</div>
 									</div>
 								</div>
-								<label for="inputEmail1">Email address</label>
-								<div class="row">
-									<div class="form-group col-xs-12">
-										<input type="email" class="form-control" id='inputEmail1' placeholder="Email">
+								<div class="form-group">
+									<div class="row">
+										<div class="input-group col-xs-12">
+											<label for="useremail">Email address</label>
+											<input type="email" class="form-control" id='useremail' placeholder="Email">
+										</div>
 									</div>
 								</div>
-								<div class="row">
-									<button id="buttonChange" type="button" class="btn btn-default">Save</button>
-									<button id="buttonPassword" type="button" class="btn btn-default" data-toggle="modal" data-target='#passwordbox'>Password</button>
-									<button id="buttonDelete" type="button" class="btn btn-danger pull-right">Delete</button>
-								</div>
+								<div class="form-group">
+									<div class="row">
+										<button id="buttonChange" type="button" class="btn btn-default">Save</button>
+										<button id="buttonPassword" type="button" class="btn btn-default" data-toggle="modal" data-target='#passwordbox'>Password</button>
+										<button id="buttonDelete" type="button" class="btn btn-danger pull-right">Delete</button>
+									</div>
 							</form>
 						</div>
 					</div>
