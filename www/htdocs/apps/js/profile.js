@@ -172,7 +172,16 @@ class Profile
 			}.bind(this),
 			error: function(request, textStatus, errorThrown) {
 				if (this.onError != undefined)
-					this.onError(JSON.parse(request.responseText));
+				{
+					var message = textStatus;
+					switch (request.status)
+					{
+						case 403:
+							message = "The server disallows new user.<br>Contact the administrator";
+						break;
+					}
+					this.onError(message);
+				}
 				this.readfnc(request);
 				this.request = undefined;
 			}.bind(this),
